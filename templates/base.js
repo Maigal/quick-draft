@@ -1,3 +1,5 @@
+const versions = require('../scripts/versions')
+
 module.exports.getFiles = function (name, bootstrap, jquery) {
 
   return {
@@ -18,8 +20,8 @@ function getHtml(name, bootstrap, jquery) {
   <title>${name}</title>
 </head>
 <body>
-
-<script src="./${name}.js" ></script>
+${jquery || bootstrap ? `<script src="${versions.jquery.scripts[0]}"></script>\n` : ''}
+<script src="${name}.js"></script>
 </body>
 </html>
 `

@@ -13,22 +13,15 @@ const templates = require('./templates/base')
 let destination = null;
 
 program
-  .version('1.0.0')
+  .version('1.0.1')
   .arguments('<dest>')
-  // .option('dest', 'Destination')
   .action(function (dest) {
     destination = dest
   })
   .option('-j, --jquery', 'Add Jquery')
   .option('-b, --bootstrap', 'Add bootstrap');
-//   .option('-b, --bootstrap <version>', 'Add bootstrap(optional version)');
 
 program.parse(process.argv);
-
-
-// if (program.debug) console.log(program.opts());
-// if (program.jquery) console.log('- Jquery added');
-// if (program.bootsrap) console.log('- Bootstrap added');
 
 if (destination) {
   
@@ -53,18 +46,18 @@ function generateFiles() {
   const projectDirectory = currentDirectory + '/' + destination
 
   if (!fs.existsSync(projectDirectory)) {
+
     fs.mkdirSync(projectDirectory);
-    console.log(projectDirectory)
 
-    fs.writeFile(destination + '/index.html', templates.getFiles().html, function (err) {
+    fs.writeFile(destination + '/index.html', templates.getFiles(destination, program.bootstrap, program.jquery).html, function (err) {
       if (err) throw err;
     });
 
-    fs.writeFile(destination + `/${destination}.js`, templates.getFiles().js, function (err) {
+    fs.writeFile(destination + `/${destination}.js`, templates.getFiles(destination, program.bootstrap, program.jquery).js, function (err) {
       if (err) throw err;
     });
 
-    fs.writeFile(destination + `/${destination}.css`, templates.getFiles().css, function (err) {
+    fs.writeFile(destination + `/${destination}.css`, templates.getFiles(destination, program.bootstrap, program.jquery).css, function (err) {
       if (err) throw err;
     });
 
