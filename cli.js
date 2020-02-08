@@ -18,8 +18,9 @@ program
   .action(function (dest) {
     destination = dest
   })
-  .option('-j, --jquery', 'Add Jquery')
-  .option('-b, --bootstrap', 'Add bootstrap');
+  .option('--jquery', 'Add Jquery')
+  .option('--bootstrap', 'Add bootstrap')
+  .option('--threejs', 'Add threejs')
 
 program.parse(process.argv);
 
@@ -47,23 +48,25 @@ function generateFiles() {
 
   if (!fs.existsSync(projectDirectory)) {
 
+    const args = [destination, program.bootstrap, program.jquery, program.threejs]
+
     fs.mkdirSync(projectDirectory);
 
-    fs.writeFile(destination + '/index.html', templates.getFiles(destination, program.bootstrap, program.jquery).html, function (err) {
+    fs.writeFile(destination + '/index.html', templates.getFiles(...args).html, function (err) {
       if (err) throw err;
     });
 
-    fs.writeFile(destination + `/${destination}.js`, templates.getFiles(destination, program.bootstrap, program.jquery).js, function (err) {
+    fs.writeFile(destination + `/${destination}.js`, templates.getFiles(...args).js, function (err) {
       if (err) throw err;
     });
 
-    fs.writeFile(destination + `/${destination}.css`, templates.getFiles(destination, program.bootstrap, program.jquery).css, function (err) {
+    fs.writeFile(destination + `/${destination}.css`, templates.getFiles(...args).css, function (err) {
       if (err) throw err;
     });
 
     console.log(chalk.green('Project created successfully!'))
 
   } else {
-    console.log('Directory already exists')
+    console.log(chalk.redBright('Directory already exists'))
   }
 }
