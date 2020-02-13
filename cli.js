@@ -13,7 +13,7 @@ const templates = require('./templates/base')
 let destination = null;
 
 program
-  .version('1.0.2')
+  .version('1.0.3')
   .arguments('<dest>')
   .action(function (dest) {
     destination = dest
