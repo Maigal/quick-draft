@@ -4,15 +4,22 @@ const chalk = require('chalk');
 const fs = require('fs');
 const path = require('path');
 const inquirer = require('inquirer');
-const templates = require('./templates/base')
+const baseTemplates = require('./templates/base')
+const algoTemplates = require('./templates/algo')
 const { exec } = require("child_process");
-
-// const [,, ...args] = process.argv
-
-// console.log('Args:' + args)
 
 let destination = null;
 let isNpmProject = false;
+
+function printUpdate(str){
+  process.stdout.clearLine(0);
+  process.stdout.cursorTo(0);
+  process.stdout.write(str);
+}
+function printStop(){
+  process.stdout.clearLine(0);
+  process.stdout.cursorTo(0);
+}
 
 program
   .version('1.0.3')
@@ -23,11 +30,11 @@ program
   .option('--jquery', 'Add Jquery')
   .option('--bootstrap', 'Add bootstrap')
   .option('--threejs', 'Add threejs')
-  .option('--algo', 'Install jest, create a .js and a .test.js file')
+  .option('--test', 'Install jest, create a .js and a .test.js file')
 
 program.parse(process.argv);
 
-if (program.algo) {
+if (program.test) {
    isNpmProject = true;
 }
 
@@ -66,15 +73,15 @@ function generateFiles() {
 
     fs.mkdirSync(projectDirectory);
 
-    fs.writeFile(destination + '/index.html', templates.getFiles(...args).html, function (err) {
+    fs.writeFile(destination + '/index.html', baseTemplates.getFiles(...args).html, function (err) {
       if (err) throw err;
     });
 
-    fs.writeFile(destination + `/${destination}.js`, templates.getFiles(...args).js, function (err) {
+    fs.writeFile(destination + `/${destination}.js`, baseTemplates.getFiles(...args).js, function (err) {
       if (err) throw err;
     });
 
-    fs.writeFile(destination + `/${destination}.css`, templates.getFiles(...args).css, function (err) {
+    fs.writeFile(destination + `/${destination}.css`, baseTemplates.getFiles(...args).css, function (err) {
       if (err) throw err;
     });
 
@@ -89,18 +96,51 @@ async function generateProject() {
   const currentDirectory = path.resolve(process.cwd())
   const projectDirectory = currentDirectory + '/' + destination
 
-  console.log('Initializing project...')
+  if (!fs.existsSync(projectDirectory)) {
 
-  await execute('npm init --y')
-    .then(res => console.log(res))
-    .catch(err => console.warn(err))
+    fs.mkdirSync(projectDirectory);
 
-  console.log('Installing jest...')
+    process.chdir(destination);
 
-  await execute('npm install jest --save-dev')
-    .then(res => console.log(res))
-    .catch(err => console.warn(err))
+    printUpdate('Initializing project...')
 
+    await execute('npm init --y')
+      .catch(err => console.warn(err))
+
+    printUpdate('Installing jest...')
+
+    await execute('npm install jest --save-dev')
+      .catch(err => console.warn(err))
+
+    try {
+      printUpdate('Creating files...')
+      const _scripts = {
+        "test": "jest",
+        "test-watch": "jest --watchAll"
+      }
+      const fileData = fs.readFileSync("./package.json", "utf8")
+      const jsonData = JSON.parse(fileData)
+      jsonData["scripts"] = _scripts
+      fs.writeFileSync("./package.json", JSON.stringify(jsonData), null, 2)
+      fs.writeFile(`index.js`, algoTemplates.getFiles().js, function (err) {
+        if (err) throw err;
+      });
+      fs.writeFile(`index.test.js`, algoTemplates.getFiles().testJs, function (err) {
+        if (err) throw err;
+      });
+      
+    }
+    catch (err) {
+      console.warn(err)
+    }
+
+    printStop()
+    console.log(chalk.green('Project created successfully!'))
+    console.log(`To run and watch your test, run ${chalk.yellow(`cd ${destination} && npm run test-watch`)}`)
+    
+  } else {
+    console.log(chalk.redBright('Directory already exists'))
+  }
 }
 
 function execute(cmd) {
